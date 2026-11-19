@@ -123,10 +123,10 @@ class CarState(CarStateBase, CarStateExt):
       ret.steerFaultPermanent = False
       ret.steerFaultTemporary = False
 
-        # The CR-V's EPS reports NO_TORQUE_ALERT_1 below ~25 mph when the stock LKAS chain
-        # goes quiet, even though it still accepts steering torque there
-        if (self.CP.carFingerprint == CAR.HONDA_CRV) and (steer_status == "NO_TORQUE_ALERT_1") and (ret.vEgo < 30 * CV.MPH_TO_MS):
-                ret.steerFaultTemporary = False
+    # The CR-V's EPS reports NO_TORQUE_ALERT_1 below ~25 mph when the stock LKAS chain
+    # goes quiet, even though it still accepts steering torque there
+    if (self.CP.carFingerprint == CAR.HONDA_CRV) and (steer_status == "NO_TORQUE_ALERT_1") and (ret.vEgo < 30 * CV.MPH_TO_MS):
+      ret.steerFaultTemporary = False
 
     # All Honda EPS cut off slightly above standstill, some much higher
     # Don't alert in the near-standstill range, but alert for per-vehicle configured minimums above that
