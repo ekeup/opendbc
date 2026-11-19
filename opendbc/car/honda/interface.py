@@ -420,7 +420,7 @@ class CarInterface(CarInterfaceBase):
     if candidate in HONDA_BOSCH:
       pass
     else:
-      ret.enableGasInterceptor = 0x201 in fingerprint[CAN.pt]
+      ret.enableGasInterceptor = 0x201 in fingerprint[CAN.pt] or candidate == CAR.HONDA_CRV
       stock_cp.pcmCruise = not ret.enableGasInterceptor
 
     if ret.enableGasInterceptor and candidate not in HONDA_BOSCH:
