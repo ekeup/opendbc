@@ -10,6 +10,24 @@ Ecu = structs.CarParams.Ecu
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
 GearShifter = structs.CarState.GearShifter
 
+# Runtime-adjustable steering torque request cap for the 2015-16 CR-V.
+# Set from the device UI (Honda settings -> "CR-V: Steering Torque Cap"),
+# stored in the HondaSteerCapParams param. Stock value is 1000.
+STEER_CAP_MIN = 500
+STEER_CAP_MAX = 2000
+STEER_CAP_DEFAULT = 1000
+
+
+def get_steer_cap() -> int:
+  try:
+    from openpilot.common.params import Params
+    v = Params().get("HondaSteerCapParams")
+    if v is not None:
+      return max(STEER_CAP_MIN, min(STEER_CAP_MAX, int(float(v))))
+  except Exception:
+    pass
+  return STEER_CAP_DEFAULT
+
 
 class CarControllerParams:
   # Allow small margin below -3.5 m/s^2 from ISO 15622:2018 since we
