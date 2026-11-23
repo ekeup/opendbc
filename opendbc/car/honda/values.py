@@ -13,8 +13,14 @@ GearShifter = structs.CarState.GearShifter
 # Runtime-adjustable steering torque request cap for the 2015-16 CR-V.
 # Set from the device UI (Honda settings -> "CR-V: Steering Torque Cap"),
 # stored in the HondaSteerCapParams param. Stock value is 1000.
+# STEER_CAP_MAX is 1000 (stock), not higher: on this car's EPS, torque
+# requests above 1000 at highway speed trip TMP_FAULT / NO_TORQUE_ALERT_1,
+# which drops latActive and cuts steering assist entirely (verified
+# 2026-11-23: cap 1000 clean at 70-80 mph on the same build, cap 1025
+# faulting on light curves with weak steering). The knob only tunes below
+# stock. Do not raise this without logged proof the EPS tolerates it.
 STEER_CAP_MIN = 500
-STEER_CAP_MAX = 2000
+STEER_CAP_MAX = 1000
 STEER_CAP_DEFAULT = 1000
 
 
