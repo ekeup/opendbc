@@ -9,7 +9,7 @@ from opendbc.can import CANPacker
 from opendbc.car import ACCELERATION_DUE_TO_GRAVITY, Bus, DT_CTRL, rate_limit, make_tester_present_msg, structs
 from opendbc.car.honda import hondacan
 from opendbc.car.honda.values import CAR, CruiseButtons, HONDA_BOSCH, HONDA_BOSCH_CANFD, HONDA_BOSCH_RADARLESS, \
-                                     HONDA_BOSCH_TJA_CONTROL, HONDA_NIDEC_ALT_PCM_ACCEL, CarControllerParams, HondaFlags, get_steer_cap
+                                     HONDA_BOSCH_TJA_CONTROL, HONDA_NIDEC_ALT_PCM_ACCEL, CarControllerParams, HondaFlags
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.common.pid import PIDController
 
@@ -131,11 +131,6 @@ class CarController(CarControllerBase, MadsCarController, GasInterceptorCarContr
     IntelligentCruiseButtonManagementInterface.__init__(self, CP, CP_SP)
     self.packer = CANPacker(dbc_names[Bus.pt])
     self.params = CarControllerParams(CP)
-    # UI-adjustable steering torque cap (2015-16 CR-V only), see values.get_steer_cap
-    self.steer_cap_platform = CP.carFingerprint in (CAR.HONDA_CRV, CAR.HONDA_CRV_EU, CAR.HONDA_CRV_SA)
-    self.steer_cap = self.params.STEER_MAX
-    if self.steer_cap_platform:
-      self._apply_steer_cap(get_steer_cap())
     self.CAN = hondacan.CanBus(CP)
     self.tja_control = CP.carFingerprint in HONDA_BOSCH_TJA_CONTROL
     self.param_writer = HondaParamWriter()
@@ -172,19 +167,8 @@ class CarController(CarControllerBase, MadsCarController, GasInterceptorCarContr
     self.temp_errorlogging3 = 0.0
     self.temp_errorlogging4 = 0.0
 
-  def _apply_steer_cap(self, cap: int):
-    self.steer_cap = cap
-    self.params.STEER_MAX = cap
-    self.params.STEER_LOOKUP_BP = [-cap, 0, cap]
-    self.params.STEER_LOOKUP_V = [-cap, 0, cap]
-
   def update(self, CC, CC_SP, CS, now_nanos):
     MadsCarController.update(self, self.CP, CC, CC_SP)
-    # pick up UI changes to the CR-V steering torque cap without a restart (~1 Hz)
-    if self.steer_cap_platform and self.frame % 100 == 0:
-      cap = get_steer_cap()
-      if cap != self.steer_cap:
-        self._apply_steer_cap(cap)
     gas_pedal_force = 0.0
     min_gas = self.params.BOSCH_GAS_LOOKUP_BP[0]
     actuators = CC.actuators
