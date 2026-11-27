@@ -51,6 +51,9 @@ class CarState(CarStateBase, CarStateExt):
 
     # When available we use cp.vl["CAR_SPEED"]["ROUGH_CAR_SPEED_2"] to populate vEgoCluster
     # However, on cars without a digital speedometer this is not always present (HRV, FIT, CRV 2016, ILX and RDX)
+    # The 2015-16 CR-V (HONDA_CRV) never broadcasts ROUGH_CAR_SPEED_2, but ROUGH_CAR_SPEED_3
+    # (same CAR_SPEED message, 0.01 kph resolution) is always present while moving and matches
+    # the dash cluster speed, so the CR-V populates vEgoCluster from that signal instead
     self.dash_speed_seen = False
     self.is_metric = False
     self.v_cruise_factor = 1.
@@ -157,7 +160,11 @@ class CarState(CarStateBase, CarStateExt):
 
     ret.espDisabled = cp.vl["VSA_STATUS"]["ESP_DISABLED"] != 0
 
-    if self.CP.carFingerprint not in (CAR.HONDA_ODYSSEY_TWN,):
+    if self.CP.carFingerprint == CAR.HONDA_CRV:
+      self.dash_speed_seen = self.dash_speed_seen or cp.vl["CAR_SPEED"]["ROUGH_CAR_SPEED_3"] > 1e-3
+      if self.dash_speed_seen:
+        ret.vEgoCluster = cp.vl["CAR_SPEED"]["ROUGH_CAR_SPEED_3"] * CV.KPH_TO_MS
+    elif self.CP.carFingerprint not in (CAR.HONDA_ODYSSEY_TWN,):
       self.dash_speed_seen = self.dash_speed_seen or cp.vl["CAR_SPEED"]["ROUGH_CAR_SPEED_2"] > 1e-3
       if self.dash_speed_seen:
         conversion = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
